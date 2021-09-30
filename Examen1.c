@@ -10,15 +10,24 @@ Elliot Duran Macedo 15/09/2021
 #define MEM_TOTAL 4096
 #define MEM_SO 1024
 
+#define TRUE 1
+#define FALSE !TRUE
+
+struct proceso {
+  int id;
+  int tamProceso;
+};
+
 int menu();
 void particion_estatica();
-void prueba();
+struct proceso crear_proceso(int _id, int _tamProceso);
+
 
 int main(void)
 {
-  //int opcion = menu();
+  int opcion = menu();
   particion_estatica();
-  //prueba();
+  
   return 0;
 }
 
@@ -31,7 +40,7 @@ int menu()
   printf("2022-1\n\n");
   printf("Programa de Administracion de memoria\n\n");
   printf("El sistema cuenta con la memoria siguiente:\n");
-  printf("Memoria total: \n");
+  printf("Memoria total: %d KB\n", MEM_TOTAL);
   printf("Memoria base: \n");
   printf("Memoria programas: \n");
   printf("Memoria disponible: \n\n");
@@ -48,41 +57,55 @@ int menu()
 
 void particion_estatica()
 {
-  int memSO;
-  int memRestante;
+  int memRestante = MEM_TOTAL - MEM_SO;
   int numParticiones;
-  int tamanioParticion;
+  int tamParticion;
 
-  printf("Cuanta memoria ocupa el Sistema Operativo? ");
-  scanf("%d", &memSO);
-  memRestante = MEM_TOTAL - memSO;
-
-  printf("\nCuantas particiones desea? ");
+  struct proceso procEstatico;
+  int idProc;
+  int tamProc;
+  
+  printf("\n------ PARTICIONAMIENTO ESTATICO ------\n\n");
+  printf("Cuantas particiones desea? ");
   scanf("%d", &numParticiones);
   
   int listaParticiones[numParticiones];
   
   for(int i = 0; i < numParticiones; i++)
     {
-      printf("Memoria disponible: %d KB\n\n", memRestante);
+      printf("\nMemoria disponible: %d KB\n", memRestante);
       printf("De que tamanio desea la particion %d? ", i);
-      scanf("%d", &tamanioParticion);
+      scanf("%d", &tamParticion);
 
-      if(memRestante-tamanioParticion < 0)
+      if(memRestante-tamParticion < 0)
 	{
 	  printf("MEMORIA INSUFICIENTE\n");
 	  break;
 	}
       
-      memRestante -= tamanioParticion;
-      listaParticiones[i] = tamanioParticion;
+      memRestante -= tamParticion;
+      listaParticiones[i] = tamParticion;
     }
+
+  while(TRUE)
+    {
+      printf("\nIngrese el tamanio del proceso: ");
+      scanf("%d", &tamProc);
+
+      idProc = rand() % 100;
+      procEstatico = crear_proceso(idProc, tamProc);
+      printf("\nProceso %d\n", procEstatico.id);
+      printf("Tamanio %d\n", procEstatico.tamProceso);
+      break;
+    } 
 }
 
-void prueba()
+struct proceso crear_proceso(int _id, int _tamProceso)
 {
-  for(int i = 0; i < 6; i++)
-    {
-      printf("%d", i);
-    }
+  struct proceso nuevo;
+
+  nuevo.id = _id;
+  nuevo.tamProceso = _tamProceso;
+
+  return nuevo;
 }
