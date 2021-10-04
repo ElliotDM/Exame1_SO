@@ -15,12 +15,13 @@ Elliot Duran Macedo 15/09/2021
 
 typedef struct {
   int id;
-  int tamProceso;
+  int tam;
 } proceso;
 
 void menu();
 void particion_estatica();
-proceso crear_proceso(int _id, int _tamProceso);
+void particion_dinamica();
+proceso crear_proceso(int _id, int _tam);
 
 
 int main(void)
@@ -58,6 +59,11 @@ void menu()
 	  particion_estatica();
 	  break;
 	}
+      else if(opcion == 2)
+	{
+	  particion_dinamica();
+	  break;
+	}
 
       printf("Por favor seleccione una opcion valida: ");
       scanf("%d", &opcion);
@@ -71,6 +77,7 @@ void particion_estatica()
   int tamParticion;
   int idx;
   int contador = 0;
+  int bandera = TRUE;
 
   proceso procEstatico;
   int idProc;
@@ -115,14 +122,15 @@ void particion_estatica()
       idProc = rand() % 16;
       procEstatico = crear_proceso(idProc, tamProc);
       printf("\nProceso %d\n", procEstatico.id);
-      printf("Tamanio %d\n", procEstatico.tamProceso);
+      printf("Tamanio %d KB\n", procEstatico.tam);
 
-      for(int i = 0; i < numParticiones; i++)
+      for(idx = 0; idx < numParticiones; idx++)
 	{
-	  if(tamProc <= listaParticiones[i])
+	  if(tamProc <= listaParticiones[idx])
 	    {
-	      listaParticiones[i] = -1;
+	      listaParticiones[idx] = -1;
 	      contador++;
+	      bandera = FALSE;
 	      break;
 	    }
 	}
@@ -133,15 +141,57 @@ void particion_estatica()
 	  printf("Se han utilizado todas las particiones disponibles\n\n");
 	  break;
 	}
+
+      if(bandera)
+	{
+	  printf("\nMEMORIA INSUFICIENTE\n");
+	  printf("El tamanio del proceso sobrepasa el de las particiones\n");
+	}
+
+      bandera = TRUE;
     } 
 }
 
-proceso crear_proceso(int _id, int _tamProceso)
+void particion_dinamica()
+{
+  int memRestante = MEM_TOTAL - MEM_SO;
+
+  proceso procDinamico;
+  int idProc;
+  int tamProc;
+
+  printf("\n------ PARTICIONAMIENTO DINAMICO ------\n\n");
+  printf("Memoria disponible: %d KB\n", memRestante);
+
+  while(TRUE)
+    {
+      printf("Ingrese el tamanio del proceso: ");
+      scanf("%d", &tamProc);
+
+      if(memRestante < tamProc)
+	{
+	  printf("\nMEMORIA INSUFICIENTE\n\n");
+	  break;
+	}
+      else
+	{
+	  idProc = rand() % 16;
+	  procDinamico = crear_proceso(idProc, tamProc);
+	  printf("\nProceso %d\n", procDinamico.id);
+	  printf("Tamanio %d KB\n", procDinamico.tam);
+
+	  memRestante -= tamProc;
+	  printf("Memoria disponible: %d KB\n\n", memRestante);
+	}
+    }
+}
+
+proceso crear_proceso(int _id, int _tam)
 {
   proceso nuevo;
 
   nuevo.id = _id;
-  nuevo.tamProceso = _tamProceso;
+  nuevo.tam = _tam;
 
   return nuevo;
 }
