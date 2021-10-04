@@ -13,27 +13,25 @@ Elliot Duran Macedo 15/09/2021
 #define TRUE 1
 #define FALSE !TRUE
 
-struct proceso {
+typedef struct {
   int id;
   int tamProceso;
-};
+} proceso;
 
-int menu();
+void menu();
 void particion_estatica();
-struct proceso crear_proceso(int _id, int _tamProceso);
+proceso crear_proceso(int _id, int _tamProceso);
 
 
 int main(void)
 {
-  int opcion = menu();
-  particion_estatica();
-  
+  menu();
   return 0;
 }
 
-int menu()
+void menu()
 {
-  int opc;
+  int opcion;
 
   printf("Duran Macedo Elliot\n");
   printf("Sistemas Operativos\n");
@@ -45,14 +43,25 @@ int menu()
   printf("Memoria programas: \n");
   printf("Memoria disponible: \n\n");
   printf("En el sistema se pueden emplear los siguientes modos de gestion de memoria: \n");
-  printf("1.- Particionamiento estatico\n");
-  printf("2.- Particionamiento dinamico\n");
-  printf("3.- Paginacion de memoria\n");
-  printf("4.- Segmentacion de memoria\n\n");
+  printf("[1] Particionamiento estatico\n");
+  printf("[2] Particionamiento dinamico\n");
+  printf("[3] Paginacion de memoria\n");
+  printf("[4] Segmentacion de memoria\n\n");
   printf("Por favor selecciona el tipo de gestion de memoria a implementar: ");
-    
-  scanf("%d", &opc);
-  return opc;
+
+  scanf("%d", &opcion);
+
+  while(TRUE)
+    {
+      if(opcion == 1)
+	{
+	  particion_estatica();
+	  break;
+	}
+
+      printf("Por favor seleccione una opcion valida: ");
+      scanf("%d", &opcion);
+    }
 }
 
 void particion_estatica()
@@ -60,21 +69,23 @@ void particion_estatica()
   int memRestante = MEM_TOTAL - MEM_SO;
   int numParticiones;
   int tamParticion;
+  int idx;
+  int contador = 0;
 
-  struct proceso procEstatico;
+  proceso procEstatico;
   int idProc;
   int tamProc;
   
   printf("\n------ PARTICIONAMIENTO ESTATICO ------\n\n");
+  printf("Memoria disponible: %d KB\n", memRestante);
   printf("Cuantas particiones desea? ");
   scanf("%d", &numParticiones);
   
   int listaParticiones[numParticiones];
   
-  for(int i = 0; i < numParticiones; i++)
+  for(idx = 0; idx < numParticiones; idx++)
     {
-      printf("\nMemoria disponible: %d KB\n", memRestante);
-      printf("De que tamanio desea la particion %d? ", i);
+      printf("\nDe que tamanio desea la particion %d? ", idx);
       scanf("%d", &tamParticion);
 
       if(memRestante-tamParticion < 0)
@@ -84,25 +95,50 @@ void particion_estatica()
 	}
       
       memRestante -= tamParticion;
-      listaParticiones[i] = tamParticion;
+      printf("Memoria disponible: %d KB\n", memRestante);
+      listaParticiones[idx] = tamParticion;
     }
 
-  while(TRUE)
+  printf("\nParticion\t\tTamanio\n");
+  printf("-------------------------------\n");
+
+  for(idx = 0; idx < numParticiones; idx++)
+    {
+      printf("Particion %d\t\t%d KB\n", idx, listaParticiones[idx]);
+    }
+
+  while(contador <= numParticiones)
     {
       printf("\nIngrese el tamanio del proceso: ");
       scanf("%d", &tamProc);
 
-      idProc = rand() % 100;
+      idProc = rand() % 16;
       procEstatico = crear_proceso(idProc, tamProc);
       printf("\nProceso %d\n", procEstatico.id);
       printf("Tamanio %d\n", procEstatico.tamProceso);
-      break;
+
+      for(int i = 0; i < numParticiones; i++)
+	{
+	  if(tamProc <= listaParticiones[i])
+	    {
+	      listaParticiones[i] = -1;
+	      contador++;
+	      break;
+	    }
+	}
+
+      if(contador == numParticiones)
+	{
+	  printf("\nMEMORIA INSUFICIENTE\n");
+	  printf("Se han utilizado todas las particiones disponibles\n\n");
+	  break;
+	}
     } 
 }
 
-struct proceso crear_proceso(int _id, int _tamProceso)
+proceso crear_proceso(int _id, int _tamProceso)
 {
-  struct proceso nuevo;
+  proceso nuevo;
 
   nuevo.id = _id;
   nuevo.tamProceso = _tamProceso;
