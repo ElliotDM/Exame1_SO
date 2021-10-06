@@ -14,17 +14,22 @@ Elliot Duran Macedo 15/09/2021
 #define FALSE !TRUE
 
 typedef struct {
-  int id;
+  char *id;
   int tam;
   int paginas;
+  int sDatos;
+  int sCodigo;
+  int sPila;
 } proceso;
 
 void menu();
 void particion_estatica();
 void particion_dinamica();
 void paginacion();
-proceso crear_proceso(int _id, int _tam, int _paginas);
+void segmentacion();
 
+char *conversor(int numero);
+char *concatenar(char *cadena, char caracter);
 
 int main(void)
 {
@@ -72,14 +77,20 @@ void menu()
 	  paginacion();
 	  break;
 	}
-
+      else if(opcion == 4)
+	{
+	  segmentacion();
+	  break;
+	}
       else if(opcion == 5)
 	{
 	  break;
 	}
-
-      printf("Por favor seleccione una opcion valida: ");
-      scanf("%d", &opcion);
+      else
+	{
+	  printf("Por favor seleccione una opcion valida: ");
+	  scanf("%d", &opcion);
+	}
     }
 }
 
@@ -91,13 +102,10 @@ void particion_estatica()
   int idx;
   int contador = 0;
   int bandera = TRUE;
-
-  proceso procEstatico;
-  int idProc;
-  int tamProc;
-  
+  proceso procEst;
+    
   printf("\n------ PARTICIONAMIENTO ESTATICO ------\n\n");
-  printf("Memoria disponible: %d KB\n", memRestante);
+  printf("Memoria disponible: %d KB\n\n", memRestante);
   printf("Cuantas particiones desea? ");
   scanf("%d", &numParticiones);
   
@@ -111,6 +119,7 @@ void particion_estatica()
       if(memRestante-tamParticion < 0)
 	{
 	  printf("MEMORIA INSUFICIENTE\n");
+	  printf("El tamanio de la particion supera el de la memoria disponible\n\n");
 	  break;
 	}
       
@@ -119,41 +128,32 @@ void particion_estatica()
       listaParticiones[idx] = tamParticion;
     }
 
-  printf("\nParticion\t\tTamanio\n");
-  printf("-------------------------------\n");
-
-  for(idx = 0; idx < numParticiones; idx++)
-    {
-      printf("Particion %d\t\t%d KB\n", idx, listaParticiones[idx]);
-    }
-
   while(TRUE)
     {
       printf("\nIngrese el tamanio del proceso: ");
-      scanf("%d", &tamProc);
-
-      idProc = rand() % 16;
-      procEstatico = crear_proceso(idProc, tamProc, 0);
-
-      printf("\nProceso %d\n", procEstatico.id);
-      printf("Tamanio %d KB\n", procEstatico.tam);
-
-      for(idx = 0; idx < numParticiones; idx++)
-	{
-	  if(tamProc <= listaParticiones[idx])
-	    {
-	      listaParticiones[idx] = -1;
-	      contador++;
-	      bandera = FALSE;
-	      break;
-	    }
-	}
+      scanf("%d", &procEst.tam);
+      procEst.id = conversor(rand() % 100);
 
       if(contador == numParticiones)
 	{
 	  printf("\nMEMORIA INSUFICIENTE\n");
 	  printf("Se han utilizado todas las particiones disponibles\n\n");
 	  break;
+	}
+
+      for(idx = 0; idx < numParticiones; idx++)
+	{
+	  if(procEst.tam <= listaParticiones[idx])
+	    {
+	      printf("\nProceso %s\n", procEst.id);
+	      printf("Tamanio %d KB\n\n", procEst.tam);
+
+	      listaParticiones[idx] = -1;
+	      contador++;
+	      bandera = FALSE;
+
+	      break;
+	    }
 	}
 
       if(bandera)
@@ -169,34 +169,38 @@ void particion_estatica()
 void particion_dinamica()
 {
   int memRestante = MEM_TOTAL - MEM_SO;
-
-  proceso procDinamico;
-  int idProc;
-  int tamProc;
+  proceso procDin;
 
   printf("\n------ PARTICIONAMIENTO DINAMICO ------\n\n");
   printf("Memoria disponible: %d KB\n", memRestante);
 
   while(TRUE)
     {
-      printf("Ingrese el tamanio del proceso: ");
-      scanf("%d", &tamProc);
-
-      if(memRestante < tamProc)
+      if(memRestante == 0)
 	{
-	  printf("\nMEMORIA INSUFICIENTE\n\n");
+	  printf("\nMEMORIA INSUFICIENTE\n");
+	  printf("Se ha agotado la memoria\n\n");
+	  break;
+	} 
+          
+      printf("\nIngrese el tamanio del proceso: ");
+      scanf("%d", &procDin.tam);
+
+      if(memRestante < procDin.tam)
+	{
+	  printf("\nMEMORIA INSUFICIENTE\n");
+	  printf("Se ha agotado la memoria\n\n");
 	  break;
 	}
       else
 	{
-	  idProc = rand() % 16;
-	  procDinamico = crear_proceso(idProc, tamProc, 0);
+	  procDin.id = conversor(rand() % 100);
 
-	  printf("\nProceso %d\n", procDinamico.id);
-	  printf("Tamanio %d KB\n", procDinamico.tam);
+	  printf("\nProceso %s\n", procDin.id);
+	  printf("Tamanio            %d KB\n", procDin.tam);
 
-	  memRestante -= tamProc;
-	  printf("Memoria disponible: %d KB\n\n", memRestante);
+	  memRestante -= procDin.tam;
+	  printf("Memoria disponible %d KB\n\n", memRestante);
 	}
     }
 }
@@ -206,11 +210,7 @@ void paginacion()
   int memRestante = MEM_TOTAL - MEM_SO;
   int paginas;
   int marcos;
-
-  proceso procPaginacion;
-  int idProc;
-  int tamProc;
-  int pagProc;
+  proceso procPag;
 
   printf("\n------ PAGINACION DE MEMORIA ------\n\n");
   printf("El sistema operativo maneja los siguientes tamanios de paginacion:\n");
@@ -223,14 +223,28 @@ void paginacion()
 
   while(TRUE)
     {
+      if(marcos == 0)
+	{
+	  printf("\nMEMORIA INSUFICIENTE\n");
+	  printf("Se han agotado los marcos de pagina\n\n");
+	  break;
+	} 
+            
       printf("\nIngrese el tamanio del proceso: ");
-      scanf("%d", &tamProc);
+      scanf("%d", &procPag.tam);
 
-      idProc = rand() % 100;
-      pagProc = tamProc / paginas;
-      procPaginacion = crear_proceso(idProc, tamProc, pagProc);
+      procPag.id = conversor(rand() % 100);
 
-      if(marcos-pagProc < 0)
+      if(procPag.tam <= paginas)
+	{
+	  procPag.paginas = 1;
+	}
+      else
+	{
+	  procPag.paginas = procPag.tam / paginas;
+	}
+	  
+      if(marcos-procPag.paginas < 0)
 	{
 	  printf("\nMEMORIA INSUFICIENTE\n");
 	  printf("Se han agotado los marcos de pagina\n\n");
@@ -238,23 +252,109 @@ void paginacion()
 	}
       else
 	{
-	  printf("\nProceso %d", procPaginacion.id);
-	  printf("\nTamanio %d KB", procPaginacion.tam);
-	  printf("\nPaginas %d", procPaginacion.paginas);
+	  printf("\nProceso %s\n", procPag.id);
+	  printf("\nTamanio %d KB", procPag.tam);
+	  printf("\nPaginas %d\n", procPag.paginas);
 	}
 
-      marcos -= pagProc;
-      printf("\nMarcos disponibles: %d\n", marcos);
+      marcos -= procPag.paginas;
+      printf("\nMarcos disponibles  %d\n\n", marcos);
     }
 }
 
-proceso crear_proceso(int _id, int _tam, int _paginas)
+void segmentacion()
 {
-  proceso nuevo;
+  int memRestante = MEM_TOTAL - MEM_SO;
+  proceso procSeg;
 
-  nuevo.id = _id;
-  nuevo.tam = _tam;
-  nuevo.paginas = _paginas;
+  printf("\n------ SEGMENTACION DE MEMORIA ------\n\n");
+  printf("Memoria disponible: %d KB\n\n", memRestante);
 
-  return nuevo;
+  while(TRUE)
+    {
+      if(memRestante == 0)
+	{
+	  printf("\nMEMORIA INSUFICIENTE\n");
+	  printf("Se ha agotado la memoria\n\n");
+	  break;
+	} 
+      
+      printf("Ingrese el tamanio del proceso: ");
+      scanf("%d", &procSeg.tam);
+
+      if(memRestante < procSeg.tam)
+	{
+	  printf("\nMEMORIA INSUFICIENTE\n");
+	  printf("Se ha agotado la memoria\n\n");
+	  break;
+	}
+      else
+	{
+	  procSeg.id = conversor(rand() % 100);
+	  procSeg.sDatos = procSeg.tam * 0.3;
+	  procSeg.sCodigo = procSeg.tam * 0.5;
+	  procSeg.sPila = procSeg.tam * 0.2;
+
+	  printf("\nProceso %s\n\n", procSeg.id);
+	  printf("Tamanio             %d KB\n", procSeg.tam);
+	  printf("Segmento de datos   %d KB\n", procSeg.sDatos);
+	  printf("Segmento de codigo  %d KB\n", procSeg.sCodigo);
+	  printf("Segmento de pila    %d KB\n\n", procSeg.sPila);
+
+	  memRestante -= procSeg.tam;
+	  printf("Memoria disponible  %d KB\n\n", memRestante);
+	}
+    }
+}
+
+char *conversor(int numero)
+{
+  char *binario = "";
+  char c;
+  
+  if(numero > 0)
+    {
+      while(numero > 0)
+	{
+	  if(numero % 2 == 0)
+	    {
+	      c = '0';
+	      binario = concatenar(binario, c);
+	    }
+	  else
+	    {
+	      c = '1';
+	      binario = concatenar(binario, c);
+	    }
+
+	  numero = (int) numero / 2;
+	}
+    }
+  else
+    {
+      binario = "0";
+    }
+
+   return binario;
+}
+
+char *concatenar(char *cadena, char caracter)
+{
+  char *aux;
+  int i;
+  int longitud = 0;
+
+  while(cadena[++longitud] != 0);
+  
+  aux = (char*)malloc(longitud + 2);
+  aux[0] = caracter;
+
+  for(i = 1; cadena[i-1] != '\0'; i++)
+    {
+      aux[i] = cadena[i-1];
+    }
+
+  aux[i++] = '\0';
+
+  return aux; 
 }
