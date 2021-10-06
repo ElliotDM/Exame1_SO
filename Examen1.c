@@ -16,12 +16,14 @@ Elliot Duran Macedo 15/09/2021
 typedef struct {
   int id;
   int tam;
+  int paginas;
 } proceso;
 
 void menu();
 void particion_estatica();
 void particion_dinamica();
-proceso crear_proceso(int _id, int _tam);
+void paginacion();
+proceso crear_proceso(int _id, int _tam, int _paginas);
 
 
 int main(void)
@@ -47,7 +49,8 @@ void menu()
   printf("[1] Particionamiento estatico\n");
   printf("[2] Particionamiento dinamico\n");
   printf("[3] Paginacion de memoria\n");
-  printf("[4] Segmentacion de memoria\n\n");
+  printf("[4] Segmentacion de memoria\n");
+  printf("[5] Salir\n\n");
   printf("Por favor selecciona el tipo de gestion de memoria a implementar: ");
 
   scanf("%d", &opcion);
@@ -62,6 +65,16 @@ void menu()
       else if(opcion == 2)
 	{
 	  particion_dinamica();
+	  break;
+	}
+      else if(opcion == 3)
+	{
+	  paginacion();
+	  break;
+	}
+
+      else if(opcion == 5)
+	{
 	  break;
 	}
 
@@ -114,13 +127,14 @@ void particion_estatica()
       printf("Particion %d\t\t%d KB\n", idx, listaParticiones[idx]);
     }
 
-  while(contador <= numParticiones)
+  while(TRUE)
     {
       printf("\nIngrese el tamanio del proceso: ");
       scanf("%d", &tamProc);
 
       idProc = rand() % 16;
-      procEstatico = crear_proceso(idProc, tamProc);
+      procEstatico = crear_proceso(idProc, tamProc, 0);
+
       printf("\nProceso %d\n", procEstatico.id);
       printf("Tamanio %d KB\n", procEstatico.tam);
 
@@ -149,7 +163,7 @@ void particion_estatica()
 	}
 
       bandera = TRUE;
-    } 
+    }  
 }
 
 void particion_dinamica()
@@ -176,7 +190,8 @@ void particion_dinamica()
       else
 	{
 	  idProc = rand() % 16;
-	  procDinamico = crear_proceso(idProc, tamProc);
+	  procDinamico = crear_proceso(idProc, tamProc, 0);
+
 	  printf("\nProceso %d\n", procDinamico.id);
 	  printf("Tamanio %d KB\n", procDinamico.tam);
 
@@ -186,12 +201,60 @@ void particion_dinamica()
     }
 }
 
-proceso crear_proceso(int _id, int _tam)
+void paginacion()
+{
+  int memRestante = MEM_TOTAL - MEM_SO;
+  int paginas;
+  int marcos;
+
+  proceso procPaginacion;
+  int idProc;
+  int tamProc;
+  int pagProc;
+
+  printf("\n------ PAGINACION DE MEMORIA ------\n\n");
+  printf("El sistema operativo maneja los siguientes tamanios de paginacion:\n");
+  printf("4 KB\t8 KB\t16 KB\t32 KB\n\n");
+  printf("De que tamanio desea las paginas? ");
+  scanf("%d", &paginas);
+
+  marcos = memRestante / paginas;
+  printf("Total de marcos de pagina: %d\n", marcos);
+
+  while(TRUE)
+    {
+      printf("\nIngrese el tamanio del proceso: ");
+      scanf("%d", &tamProc);
+
+      idProc = rand() % 100;
+      pagProc = tamProc / paginas;
+      procPaginacion = crear_proceso(idProc, tamProc, pagProc);
+
+      if(marcos-pagProc < 0)
+	{
+	  printf("\nMEMORIA INSUFICIENTE\n");
+	  printf("Se han agotado los marcos de pagina\n\n");
+	  break;
+	}
+      else
+	{
+	  printf("\nProceso %d", procPaginacion.id);
+	  printf("\nTamanio %d KB", procPaginacion.tam);
+	  printf("\nPaginas %d", procPaginacion.paginas);
+	}
+
+      marcos -= pagProc;
+      printf("\nMarcos disponibles: %d\n", marcos);
+    }
+}
+
+proceso crear_proceso(int _id, int _tam, int _paginas)
 {
   proceso nuevo;
 
   nuevo.id = _id;
   nuevo.tam = _tam;
+  nuevo.paginas = _paginas;
 
   return nuevo;
 }
