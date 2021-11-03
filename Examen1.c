@@ -1,6 +1,6 @@
 /*
 PRIMER EXAMEN -- SISTEMAS OPERATIVOS
-Elliot Duran Macedo 15/09/2021
+Elliot Duran Macedo 25/10/2021
 */
 
 
@@ -8,7 +8,9 @@ Elliot Duran Macedo 15/09/2021
 #include <stdlib.h>
 
 #define MEM_TOTAL 4096
-#define MEM_SO 1024
+#define MEM_BASE 640
+#define MEM_PROG 384
+#define MEM_DISP 3072
 
 #define TRUE 1
 #define FALSE !TRUE
@@ -46,10 +48,10 @@ void menu()
   printf("2022-1\n\n");
   printf("Programa de Administracion de memoria\n\n");
   printf("El sistema cuenta con la memoria siguiente:\n");
-  printf("Memoria total: %d KB\n", MEM_TOTAL);
-  printf("Memoria base: \n");
-  printf("Memoria programas: \n");
-  printf("Memoria disponible: \n\n");
+  printf("Memoria total: %d KB\n\n", MEM_TOTAL);
+  printf("Memoria base: %d KB\n", MEM_BASE);
+  printf("Memoria programas: %d KB\n", MEM_PROG);
+  printf("Memoria disponible: %d KB\n\n", MEM_DISP);
   printf("En el sistema se pueden emplear los siguientes modos de gestion de memoria: \n");
   printf("[1] Particionamiento estatico\n");
   printf("[2] Particionamiento dinamico\n");
@@ -96,7 +98,7 @@ void menu()
 
 void particion_estatica()
 {
-  int memRestante = MEM_TOTAL - MEM_SO;
+  int memRestante = MEM_DISP;
   int numParticiones;
   int tamParticion;
   int idx;
@@ -168,7 +170,7 @@ void particion_estatica()
 
 void particion_dinamica()
 {
-  int memRestante = MEM_TOTAL - MEM_SO;
+  int memRestante = MEM_DISP;
   proceso procDin;
 
   printf("\n------ PARTICIONAMIENTO DINAMICO ------\n\n");
@@ -207,7 +209,7 @@ void particion_dinamica()
 
 void paginacion()
 {
-  int memRestante = MEM_TOTAL - MEM_SO;
+  int memRestante = MEM_DISP;
   int paginas;
   int marcos;
   proceso procPag;
@@ -228,7 +230,7 @@ void paginacion()
 	  printf("\nMEMORIA INSUFICIENTE\n");
 	  printf("Se han agotado los marcos de pagina\n\n");
 	  break;
-	} 
+	}
             
       printf("\nIngrese el tamanio del proceso: ");
       scanf("%d", &procPag.tam);
@@ -264,7 +266,7 @@ void paginacion()
 
 void segmentacion()
 {
-  int memRestante = MEM_TOTAL - MEM_SO;
+  int memRestante = MEM_DISP;
   proceso procSeg;
 
   printf("\n------ SEGMENTACION DE MEMORIA ------\n\n");
